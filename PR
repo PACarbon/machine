@@ -1,0 +1,34 @@
+from sklearn.metrics import PrecisionRecallDisplay      #用于绘图，显示精确率-召回率曲线
+from sklearn.pipeline import make_pipeline              #创建一个模型“流水线”，自动连接多个处理步骤
+from sklearn.preprocessing import StandardScaler        #把数据标准化（均值为0，方差为1）
+from sklearn.svm import LinearSVC                       #线性支持向量分类器
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split    #把数据分成训练集和测试集
+import numpy as np
+#filename = 'iris.txt'  
+#file = open(filename, mode='r') # 打开文件进行读取  
+#text = file.read() # 读取文件的内容  
+#print(file.closed) # 检查文件是否关闭  
+#file.close() # 关闭文件  
+#print(text)  
+
+ 
+X, y = load_iris(return_X_y=True)       #X 是 150 朵花的特征，y 是它们对应的分类（0, 1, 2 三类）
+ 
+# Add noisy features人为加噪声特征
+random_state = np.random.RandomState(0)
+n_samples, n_features = X.shape
+X = np.concatenate([X, random_state.randn(n_samples, 200 * n_features)], axis=1)
+ 
+# Limit to the two first classes, and split into training and test
+X_train, X_test, y_train, y_test = train_test_split(                #一半训练，一半测试
+    X[y < 2], y[y < 2], test_size=0.5, random_state=random_state
+)
+classifier = make_pipeline(StandardScaler(), LinearSVC(random_state=random_state))
+classifier.fit(X_train, y_train)
+display = PrecisionRecallDisplay.from_estimator(
+    classifier, X_test, y_test, name="LinearSVC"
+)
+_ = display.ax_.set_title("2-class Precision-Recall curve")
+import matplotlib.pyplot as plt
+plt.show()
